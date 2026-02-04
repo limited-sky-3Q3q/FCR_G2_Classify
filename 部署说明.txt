@@ -1,0 +1,43 @@
+FCR 预测模型 Web 应用部署说明
+====================================
+
+方法一：使用 Streamlit（推荐）
+------------------------------
+
+1. 安装 Streamlit:
+   pip install streamlit
+
+2. 运行应用:
+   streamlit run app.py
+
+3. 浏览器会自动打开 http://localhost:8501
+
+方法二：部署到云端（Streamlit Cloud）
+--------------------------------------
+
+1. 将代码上传到 GitHub
+
+2. 访问 https://share.streamlit.io/
+
+3. 连接 GitHub 仓库
+
+4. 选择 app.py 作为主文件
+
+5. 部署完成，获得公网访问地址
+
+方法三：打包为可执行文件（PyInstaller）
+----------------------------------------
+
+1. 安装 PyInstaller:
+   pip install pyinstaller
+
+2. 打包应用:
+   pyinstaller --onefile --windowed app.py
+
+3. 在 dist 目录生成 .exe 文件，可独立运行
+
+注意事项
+--------
+- 确保 .joblib 模型文件与 app.py 在同一目录
+- 首次运行需要安装所有依赖包
+- 模型文件路径为: 各模型最优参数（可复现）\92.56%准确率LogisticRegression_E1数据集.joblib

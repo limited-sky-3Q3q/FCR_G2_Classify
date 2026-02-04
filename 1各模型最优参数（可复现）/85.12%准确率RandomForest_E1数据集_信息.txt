@@ -1,0 +1,16 @@
+RandomForest模型信息 - E1数据集
+======================================================================
+
+准确率: 85.12%
+标准差: ±10.15%
+
+模型参数:
+  class_weight: balanced
+  max_depth: None
+  max_features: None
+  min_samples_leaf: 1
+  min_samples_split: 5
+  n_estimators: 100
+  random_state: 42
+
+最优特征: ['GAD7_0', 'TCSQ_NC', 'Age', 'Residence', 'Education', 'Has_Partner', 'Relationship_with_Family', 'Family_Social_Emotional_Support', 'Perceived_Severity_of_Condition', 'Life_Economic_Stress']

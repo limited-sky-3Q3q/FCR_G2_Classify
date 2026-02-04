@@ -1,0 +1,79 @@
+批量调参结果 - E1数据集
+======================================================================
+
+数据集: CARCT1_E1_FG2_processed_translated.csv
+样本数: 52
+特征数: 10
+特征: GAD7_0, TCSQ_NC, Age, Residence, Education, Has_Partner, Relationship_with_Family, Family_Social_Emotional_Support, Perceived_Severity_of_Condition, Life_Economic_Stress
+
+
+======================================================================
+ExtraTrees
+======================================================================
+准确率: 88.9881%
+参数:
+  max_depth: None
+  max_features: sqrt
+  min_samples_leaf: 2
+  min_samples_split: 10
+  n_estimators: 100
+  random_state: 42
+
+======================================================================
+SVM
+======================================================================
+准确率: 88.9881%
+参数:
+  C: 0.1
+  class_weight: None
+  gamma: scale
+  kernel: linear
+  random_state: 42
+
+======================================================================
+NeuralNetwork
+======================================================================
+准确率: 88.9881%
+参数:
+  activation: logistic
+  alpha: 0.0001
+  hidden_layer_sizes: (50,)
+  learning_rate: constant
+  max_iter: 1000
+  random_state: 42
+  solver: adam
+
+======================================================================
+KNN
+======================================================================
+准确率: 87.2024%
+参数:
+  metric: manhattan
+  n_neighbors: 5
+  weights: distance
+
+======================================================================
+RandomForest
+======================================================================
+准确率: 85.1190%
+参数:
+  class_weight: balanced
+  max_depth: None
+  max_features: None
+  min_samples_leaf: 1
+  min_samples_split: 5
+  n_estimators: 100
+  random_state: 42
+
+======================================================================
+GradientBoosting
+======================================================================
+准确率: 84.8214%
+参数:
+  learning_rate: 0.01
+  max_depth: 5
+  min_samples_leaf: 4
+  min_samples_split: 2
+  n_estimators: 200
+  random_state: 42
+  subsample: 1.0

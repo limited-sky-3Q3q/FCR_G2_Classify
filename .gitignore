@@ -1,0 +1,55 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+env/
+*.egg-info/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 数据文件（根据需要保留或删除）
+# CARCT1_E1_FG2_processed_translated.csv
+# 处理原始数据/
+
+# 输出和日志
+*.log
+output.txt
+output.log
+
+# 模型文件（可选，.pkl 和 .joblib）
+# 如果想部署 Streamlit Cloud，需要保留 fcr_web_model.pkl
+# 各模型最优参数（可复现）/*.joblib
+
+# 图片和图表（保留模型对比图表）
+# 3最优模型图表生成/
+# 2模型对比图表生成/
+
+# 备份
+备份_旧文件_*/
+*.zip
+
+# 临时文件
+$null
+.cache/
+
+# Streamlit
+.streamlit/**/*.pyc
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+desktop.ini

@@ -1,0 +1,52 @@
+
+LogisticRegression模型调参结果 - E1数据集（最终优化）
+======================================================================
+
+最佳准确率: 92.5595%
+最佳方法: 精细网格搜索
+最佳标准化: StandardScaler
+特征数量: 10
+
+最佳参数:
+  C: 1.0
+  class_weight: balanced
+  max_iter: 2000
+  penalty: l2
+  solver: saga
+  tol: 0.0001
+
+选择的特征:
+  1. GAD7_0
+  2. TCSQ_NC
+  3. Age
+  4. Residence
+  5. Education
+  6. Has_Partner
+  7. Relationship_with_Family
+  8. Family_Social_Emotional_Support
+  9. Perceived_Severity_of_Condition
+  10. Life_Economic_Stress
+
+8折交叉验证详细结果:
+  折1: 100.00%
+  折2: 85.71%
+  折3: 85.71%
+  折4: 85.71%
+  折5: 83.33%
+  折6: 100.00%
+  折7: 100.00%
+  折8: 100.00%
+
+平均准确率: 92.5595% ± 7.4761%
+
+特征重要性:
+  Education: -1.0485 (重要性: 1.0485)
+  TCSQ_NC: -0.9863 (重要性: 0.9863)
+  Perceived_Severity_of_Condition: -0.9710 (重要性: 0.9710)
+  Age: 0.8027 (重要性: 0.8027)
+  Family_Social_Emotional_Support: 0.7912 (重要性: 0.7912)
+  GAD7_0: -0.7901 (重要性: 0.7901)
+  Residence: -0.7641 (重要性: 0.7641)
+  Relationship_with_Family: 0.6801 (重要性: 0.6801)
+  Life_Economic_Stress: -0.6301 (重要性: 0.6301)
+  Has_Partner: -0.4729 (重要性: 0.4729)
