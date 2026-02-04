@@ -1,0 +1,75 @@
+================================================================================
+线性模型调参结果（最终优化版）- CARCT1_E1_FG2_processed_translated.csv
+================================================================================
+
+数据集:
+  样本数: 52
+  特征数: 10
+  类别1: 18
+  类别2: 34
+
+特征列表:
+  1. GAD7_0
+
+  2. Residence
+
+  3. Marriage
+
+  4. Education
+
+  5. Partner_Monthly_Income
+
+  6. Relationship_with_Family
+
+  7. Family_Social_Emotional_Support
+
+  8. Chemotherapy
+
+  9. Perceived_Severity_of_Condition
+
+  10. Duration_Aware_of_Cancer_Diagnosis
+
+标准化: RobustScaler
+
+最佳参数:
+  alpha: 0.0038
+
+  class_weight: None
+
+  eta0: 0.005
+
+  learning_rate: optimal
+
+  loss: squared_hinge
+
+  max_iter: 5000
+
+  penalty: l1
+
+  random_state: 42
+
+性能:
+  平均准确率: 92.86%
+  标准差: ±10.10%
+
+各折准确率:
+  折1: 100.00%
+  折2: 71.43%
+  折3: 85.71%
+  折4: 85.71%
+  折5: 100.00%
+  折6: 100.00%
+  折7: 100.00%
+  折8: 100.00%
+
+特征系数:
+  1. GAD7_0: -6556544966083.7871
+  2. Residence: -4354992891991.2051
+  3. Marriage: 2397390365797.6230
+  4. Education: -7295158125757.7344
+  5. Partner_Monthly_Income: 1030350813894.2614
+  6. Relationship_with_Family: 4929479903926.3809
+  7. Family_Social_Emotional_Support: 2225688974015.2314
+  8. Chemotherapy: 4168402948465.0283
+  9. Perceived_Severity_of_Condition: -1268901724666.5615
+  10. Duration_Aware_of_Cancer_Diagnosis: 1255674929299.0723
