@@ -142,11 +142,11 @@ if predict_button:
 
     with col_result:
         if result_class == 0:
-            st.success("FCR_G2 = 1")
-            st.info("低度癌症复发恐惧")
-        else:
-            st.warning("FCR_G2 = 2")
+            st.warning("FCR_G2 = 1")
             st.info("高度癌症复发恐惧")
+        else:
+            st.success("FCR_G2 = 2")
+            st.info("低度癌症复发恐惧")
 
     with col_prob:
         # 显示对应分类结果的概率
