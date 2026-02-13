@@ -20,8 +20,9 @@ build/
 *~
 
 # 数据文件（根据需要保留或删除）
-# CARCT1_E1_FG2_processed_translated.csv
-# 处理原始数据/
+CARCT1_E1_FG2_processed_translated.csv
+处理原始数据/
+使用未排序变量值训练/
 
 # 输出和日志
 *.log
