@@ -855,7 +855,7 @@ if SHAP_AVAILABLE:
     shap.summary_plot(shap_values, X_scaled, plot_type="bar",
                       feature_names=optimal_features,
                       show=False, max_display=len(optimal_features))
-    plt.title('SHAP Feature Importance - LogisticRegression (Full Dataset, n=52)\nFCR Trajectory Prediction',
+    plt.title('SHAP Feature Importance - LogisticRegression\nFCR Trajectory Prediction',
               fontsize=16, fontweight='bold', pad=20)
     plt.tight_layout()
     plt.savefig(os.path.join(script_dir, 'SHAP特征重要性条形图.png'), dpi=300, bbox_inches='tight')
@@ -868,45 +868,99 @@ if SHAP_AVAILABLE:
     shap.summary_plot(shap_values, X_scaled, feature_names=optimal_features,
                      show=False, max_display=len(optimal_features),
                      alpha=0.8, plot_size=(12, 8))
-    plt.title('SHAP Summary Plot - LogisticRegression (Full Dataset, n=52)\nFCR Trajectory Prediction',
+    plt.title('SHAP Summary Plot - LogisticRegression\nFCR Trajectory Prediction',
               fontsize=16, fontweight='bold', pad=20)
     plt.tight_layout()
     plt.savefig(os.path.join(script_dir, 'SHAP特征重要性蜂群图.png'), dpi=300, bbox_inches='tight')
     plt.close()
     print("  已保存: SHAP特征重要性蜂群图.png")
 
+    # 9.3 生成所有样本的SHAP解释图
+    print(f"  生成所有样本SHAP解释图（共{len(X_scaled)}个样本）...")
+    
+    # 定义特征值映射字典（根据对照表，使用英文）
+    # 原始数据值从0开始，需要添加0对应的描述
+    value_mapping = {
+        'Residence': {0: 'Urban', 1: 'Rural'},  # 原始数据: 0=Urban, 1=Rural
+        'Education': {0: 'Junior High or below', 1: 'High School', 2: 'Bachelor or above'},  # 原始数据: 0,1,2
+        'Has_Partner': {0: 'Yes', 1: 'No'},  # 原始数据: 0=Yes, 1=No
+        'Relationship_with_Family': {0: 'Very Distant', 1: 'Quite Distant', 2: 'Average', 3: 'Quite Close', 4: 'Very Close'},  # 原始数据: 0-4
+        'Family_Social_Emotional_Support': {0: 'Insufficient', 1: 'Average', 2: 'Sufficient', 3: 'Very Sufficient'},  # 原始数据: 0-3
+        'Perceived_Severity_of_Condition': {0: 'Mild', 1: 'Moderate', 2: 'Severe'},  # 原始数据: 0-2
+        'Life_Economic_Stress': {0: 'None', 1: 'No Stress', 2: 'Mild Stress', 3: 'Moderate Stress', 4: 'Severe Stress'}  # 原始数据: 0-4
+    }
+    
     # 9.3 生成所有样本SHAP瀑布图
     print(f"  生成所有样本SHAP瀑布图（共{len(X_scaled)}个样本）...")
+
+    # Monkey patch SHAP内部格式化函数，移除负号显示
+    import shap.plots._waterfall as shap_waterfall
+    import re
+
+    # 保存原始格式化函数
+    original_format_value = shap_waterfall.format_value
+
+    # 定义新的格式化函数，移除负号
+    def format_value_no_minus(s, format_str="{:.3f}"):
+        """格式化数值时移除负号"""
+        if not issubclass(type(s), str):
+            s = format_str % s
+        # 移除尾部的0
+        s = re.sub(r"\.?0+$", "", s)
+        # 如果有负号，直接移除它（包括普通减号和Unicode减号）
+        if s.startswith('-') or s.startswith('\u2212'):
+            s = s[1:] if s.startswith('-') else s[1:]
+        return s
+
+    # 替换SHAP的格式化函数
+    shap_waterfall.format_value = format_value_no_minus
+    
     for sample_idx in range(len(X_scaled)):
-        # 强制设置matplotlib使用ASCII字体，避免负号显示问题
+        # 强制设置matplotlib使用中文字体
         import matplotlib as mpl
         mpl.rcParams['font.family'] = 'sans-serif'
-        mpl.rcParams['font.sans-serif'] = ['Arial', 'DejaVu Sans', 'sans-serif']
+        mpl.rcParams['font.sans-serif'] = ['SimHei', 'Microsoft YaHei', 'Arial Unicode MS', 'SimSun', 'DejaVu Sans']
         mpl.rcParams['axes.unicode_minus'] = False
         mpl.rcParams['axes.formatter.use_mathtext'] = False
         mpl.rcParams['text.usetex'] = False
 
         plt.figure(figsize=(12, 8))
-        # 确保负号正确显示
+        # 确保负号不显示 - 全面配置
         plt.rcParams['axes.unicode_minus'] = False
         plt.rcParams['axes.formatter.use_mathtext'] = False
+        plt.rcParams['text.usetex'] = False
+        plt.rcParams['mathtext.default'] = 'regular'
 
-        # 临时修复SHAP负号显示问题：修改matplotlib的文本渲染器
-        from matplotlib import rcParams
-        rcParams['axes.unicode_minus'] = False
-        rcParams['axes.formatter.use_mathtext'] = False
-        # 使用ASCII减号而非Unicode减号
-        mpl.rcParams['text.usetex'] = False
-
-        # 使用标准化前的原始数据（X_selected）而非标准化后的X_scaled
+        # 准备瀑布图数据，将数值转换为英文描述
+        X_sample_original = X_selected.iloc[sample_idx].values.copy()
+        X_sample_display = []
+        
+        for j, feat in enumerate(optimal_features):
+            val = X_sample_original[j]
+            if feat in value_mapping:
+                # 离散特征：转换为英文描述
+                int_val = int(round(val)) if not pd.isna(val) and isinstance(val, (int, float)) else val
+                if int_val in value_mapping[feat]:
+                    display_val = value_mapping[feat][int_val]
+                else:
+                    display_val = str(int_val)
+            elif feat == 'GAD7_0' or feat == 'TCSQ_NC' or feat == 'Age':
+                # 连续数值特征：保留原始数值
+                display_val = f"{abs(val):.1f}"  # 使用abs()移除负号
+            else:
+                # 其他特征：直接显示
+                display_val = str(abs(val))  # 使用abs()移除负号
+            X_sample_display.append(display_val)
+        
+        # 创建Explanation对象，使用原始数值计算SHAP但用英文描述显示
         shap.plots.waterfall(shap.Explanation(values=shap_values[sample_idx],
                                             base_values=explainer.expected_value,
-                                            data=X_selected.iloc[sample_idx].values,
+                                            data=X_sample_display,
                                             feature_names=optimal_features),
                           show=False, max_display=len(optimal_features))
         # 转换回原始标签（0->1, 1->2）
         true_label = int(y_binary[sample_idx]) + 1
-        plt.title(f'SHAP Waterfall Plot - Sample {sample_idx+1} (True: FCR={true_label}, Pred: {int(y_binary[sample_idx]) + 1})\nFCR Trajectory Prediction (Full Dataset, n=52)',
+        plt.title(f'SHAP Waterfall Plot - Sample {sample_idx+1} (True: FCR={true_label}, Pred: {int(y_binary[sample_idx]) + 1})\nFCR Trajectory Prediction',
                   fontsize=14, fontweight='bold', pad=20)
         plt.tight_layout()
         # 保存到SHAP单个样本解释图文件夹
@@ -915,45 +969,64 @@ if SHAP_AVAILABLE:
         plt.savefig(waterfall_png_path, dpi=300, bbox_inches='tight')
         plt.savefig(waterfall_pdf_path, dpi=300, bbox_inches='tight')
         plt.close()
+
+    # 恢复原始的格式化函数
+    shap_waterfall.format_value = original_format_value
+
     print(f"  已保存: SHAP瀑布图（共{len(X_scaled)}个样本）")
 
-    # 9.4 生成所有样本的SHAP解释图
+    # 9.4 生成所有样本的SHAP解释图（Force Plot）
     print(f"  生成所有样本SHAP解释图（共{len(X_scaled)}个样本）...")
+    
     for i in range(len(X_scaled)):
-        # 强制设置matplotlib使用ASCII字体，避免负号显示问题
+        # 强制设置matplotlib使用中文字体
         import matplotlib as mpl
         mpl.rcParams['font.family'] = 'sans-serif'
-        mpl.rcParams['font.sans-serif'] = ['Arial', 'DejaVu Sans', 'sans-serif']
+        mpl.rcParams['font.sans-serif'] = ['SimHei', 'Microsoft YaHei', 'Arial Unicode MS', 'SimSun', 'DejaVu Sans']
         mpl.rcParams['axes.unicode_minus'] = False
         mpl.rcParams['axes.formatter.use_mathtext'] = False
         mpl.rcParams['text.usetex'] = False
 
-        # 增加图形高度，为标题和f(x)标签留出足够空间
-        plt.figure(figsize=(14, 30))
         # 确保负号正确显示
         plt.rcParams['axes.unicode_minus'] = False
         plt.rcParams['axes.formatter.use_mathtext'] = False
 
-        # 临时修复SHAP负号显示问题：修改matplotlib的文本渲染器
-        from matplotlib import rcParams
-        rcParams['axes.unicode_minus'] = False
-        rcParams['axes.formatter.use_mathtext'] = False
-        # 使用ASCII减号而非Unicode减号
-        mpl.rcParams['text.usetex'] = False
+        # 使用原始数值（SHAP force plot不支持字符串）
+        X_sample_original = X_selected.iloc[i].values
 
-        # 将特征数值格式化为3位小数，并反转符号以修正显示
-        X_sample_rounded = np.round(X_scaled[i], 3) * -1
+        # 生成特征值说明文本
+        feature_descriptions = []
+        for j, feat in enumerate(optimal_features):
+            val = X_sample_original[j]
+            if feat in value_mapping:
+                int_val = int(round(val)) if not pd.isna(val) and isinstance(val, (int, float)) else val
+                if int_val in value_mapping[feat]:
+                    display_val = value_mapping[feat][int_val]
+                else:
+                    display_val = str(int_val)
+                feature_descriptions.append(f"{feat}: {display_val}")
+            elif feat == 'GAD7_0' or feat == 'TCSQ_NC' or feat == 'Age':
+                feature_descriptions.append(f"{feat}: {abs(val):.1f}")  # 使用abs()移除负号
+            else:
+                feature_descriptions.append(f"{feat}: {abs(val):.1f}")  # 使用abs()移除负号
 
         shap.force_plot(explainer.expected_value, shap_values[i],
-                       X_sample_rounded, feature_names=optimal_features,
-                       matplotlib=True, show=False)
+                       X_sample_original, feature_names=optimal_features,
+                       matplotlib=True, show=False, figsize=(20, 4))
         # 转换回原始标签（0->1, 1->2）
         true_label = int(y_binary[i]) + 1
         # 使用plt.figtext在上方添加标题，减小字体并调整位置
-        plt.figtext(0.5, 0.99, f'SHAP Explanation for Sample {i+1} (True: FCR={true_label}, Pred: {int(y_binary[i]) + 1})  FCR Trajectory Prediction (Full Dataset)',
-                    fontsize=12, fontweight='bold', ha='center', va='top')
+        plt.figtext(0.5, 0.99, f'SHAP Explanation - Sample {i+1} (True: FCR={true_label}, Pred: {int(y_binary[i]) + 1})  FCR Trajectory Prediction',
+                    fontsize=24, fontweight='bold', ha='center', va='top')
+        
+        # 在底部添加特征值说明
+        desc_text = '\n'.join(feature_descriptions)
+        plt.figtext(0.02, 0.62, f'Feature Values:\n{desc_text}',
+                    fontsize=8, fontfamily='monospace', ha='left', va='bottom',
+                    bbox=dict(boxstyle='round,pad=0.5', facecolor='wheat', alpha=0.5))
+        
         # 调整子图位置：hspace控制子图之间的垂直间距
-        plt.subplots_adjust(top=0.65, bottom=0.01, left=0.05, right=0.95, hspace=1.0)
+        plt.subplots_adjust(top=0.50, bottom=0.01, left=0.05, right=0.95, hspace=0.3)
         # 保存到SHAP单个样本解释图文件夹
         force_png_path = os.path.join(shap_samples_dir, f'SHAP单个样本解释图_样本{i+1}.png')
         force_pdf_path = os.path.join(shap_samples_dir, f'SHAP单个样本解释图_样本{i+1}.pdf')
@@ -967,11 +1040,19 @@ if SHAP_AVAILABLE:
     for i, feat in enumerate(optimal_features):
         plt.figure(figsize=(10, 6))
         # 手动创建特征依赖图，以便更好地控制点的显示
-        feature_values = X_scaled[:, i]
+        # 使用原始值而不是标准化值
+        feature_values = X_selected.iloc[:, i].values  # 原始值
         shap_vals = shap_values[:, i]
 
+        # 判断是否为离散特征（在value_mapping中）
+        is_categorical = feat in value_mapping
+
         # 为离散特征添加小的随机抖动，使重叠的点可见
-        jitter_amount = 0.02 * (feature_values.max() - feature_values.min())
+        if feature_values.max() > feature_values.min():
+            jitter_amount = 0.02 * (feature_values.max() - feature_values.min())
+        else:
+            jitter_amount = 0.02  # 如果最大值等于最小值，使用固定抖动
+
         if jitter_amount > 0:
             feature_values_jittered = feature_values + np.random.normal(0, jitter_amount, size=len(feature_values))
         else:
@@ -979,14 +1060,21 @@ if SHAP_AVAILABLE:
 
         # 绘制散点图
         scatter = plt.scatter(feature_values_jittered, shap_vals,
-                             c=X_scaled[:, np.argmax([np.corrcoef(X_scaled[:, i], shap_values[:, i])[0,1] for i in range(X_scaled.shape[1])])],
+                             c=X_scaled[:, np.argmax([np.corrcoef(X_scaled[:, j], shap_values[:, i])[0,1] for j in range(X_scaled.shape[1])])],
                              alpha=0.8, s=80, edgecolors='black', linewidth=0.5)
 
         plt.colorbar(scatter, label='Interaction Feature Value')
-        plt.xlabel(f'{feat} (Standardized)', fontsize=12, fontweight='bold')
+        plt.xlabel(f'{feat}', fontsize=12, fontweight='bold')
         plt.ylabel(f'SHAP value for {feat}', fontsize=12, fontweight='bold')
-        plt.title(f'SHAP Dependence Plot - {feat}\nLogisticRegression (Full Dataset, n=52)',
+        plt.title(f'SHAP Dependence Plot - {feat}\nLogisticRegression',
                   fontsize=14, fontweight='bold', pad=15)
+
+        # 如果是离散特征，将x轴刻度标签替换为英文描述
+        if is_categorical:
+            unique_values = sorted(set(feature_values))
+            unique_labels = [value_mapping[feat].get(int(v), str(v)) for v in unique_values]
+            plt.xticks(unique_values, unique_labels, rotation=45, ha='right')
+
         plt.grid(True, alpha=0.3)
         plt.tight_layout()
         plt.savefig(os.path.join(script_dir, f'SHAP特征依赖图_{feat}.png'), dpi=300, bbox_inches='tight')
